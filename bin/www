@@ -1,0 +1,229 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+var app = require('../app');
+var debug = require('debug')('testapp:server');
+var http = require('http');
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+var port = normalizePort(process.env.PORT || '3001');
+app.set('port', port);
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);
+var io = require('socket.io').listen(server);
+var socket_ids = [];
+var count  = 1;
+var rooms = [];
+
+// 기본 채팅
+// io.sockets.on('connection',(socket) =>{
+//   socket.emit('toclient',{msg:'welcome!'});
+//   socket.on('fromclient',(data)=>{
+//     socket.broadcast.emit('toclient',data);
+//     socket.emit('toclient',data);
+//     console.log('Message from client: '+data.msg);
+//   });
+// });
+
+//기본 채팅 + 1대 1 채팅
+
+function registerUser(socket,nickname){
+  if(socket.nickname !== undefined) {
+    delete socket_ids[socket.nickname];
+    socket_ids[nickname] = socket.id;
+    socket.nickname = nickname;
+    io.sockets.emit('userList', {users: Object.keys(socket_ids)});
+  }
+ else {
+    socket_ids[nickname] = socket.id;
+    socket.nickname = nickname;
+    io.sockets.emit('userList', {users: Object.keys(socket_ids)});
+  }
+}
+// io.sockets.on('connection',(socket)=>{
+//   // new register
+//   socket.emit('new',{nickname:'Guest-'+count});
+//   registerUser(socket,'Guest-'+count);
+//   count++;
+//
+//   // changename event
+//   socket.on('changename',(data)=>{
+//     registerUser(socket,data.nickname);
+//   });
+//   // disconnect event
+//   socket.on('disconnect',()=>{
+//       if(socket.nickname !== undefined){
+//         delete socket_ids[socket.nickname];
+//         io.sockets.emit('userList',{users:Object.keys(socket_ids)});
+//      }
+//   });
+//
+//   //send msg
+//   socket.on('send_msg',(data)=> {
+//     if(socket.nickname !== undefined){
+//       data.msg = socket.nickname + ':' + data.msg;
+//       if(data.to === 'All') {
+//         socket.broadcast.emit('broadcast_msg',data);
+//       }
+//       else {
+//         var socket_id = socket_ids[data.to];
+//         if(socket_id !== undefined) {
+//           io.sockets.connected[socket_id].emit('broadcast_msg',data);
+//         }
+//       }
+// //      socket.emit('broadcast_msg',data);
+//     }
+//   });
+// });
+
+io.sockets.on('connection',(socket)=> {
+  socket.on('joinroom',(data)=>{
+      socket.join(data.room);
+      socket.room = data.room;
+      var room = data.room;
+      var nickname = '손님'+count;
+      socket.emit('new',{nickname : nickname});
+      socket.nickname = nickname;
+      socket.emit('changename',{nickname:nickname});
+      if(rooms[room] === undefined){
+        console.log('room create : '+room);
+        rooms[room] = {};
+        rooms[room].socket_ids = {};
+      }
+      rooms[room].socket_ids[nickname] = socket.id;
+      data = {msg: nickname + '님이 입장하셨습니다'};
+      io.sockets.in(room).emit('broadcast_msg',data);
+      io.sockets.in(room).emit('userList',{users: Object.keys(rooms[room].socket_ids)});
+      count++;
+  });
+
+  socket.on('changename',(data)=>{
+    if(socket.room !== undefined && socket.nickname !== undefined){
+      var room = socket.room;
+      var pre_nick = socket.nickname;
+      var nickname = data.nickname;
+      if(pre_nick !== undefined){
+          delete rooms[room].socket_ids[pre_nick];
+      }
+      rooms[room].socket_ids[nickname] = socket.id;
+      socket.nickname = nickname;
+      data = {msg: pre_nick + '님이 '+ nickname+'으로 대화명을 변경하였습니다'};
+      io.sockets.in(room).emit('broadcast_msg',data);
+      io.sockets.in(room).emit('userList',{users: Object.keys(rooms[room].socket_ids)});
+    }
+  });
+
+  socket.on('disconnect',(data)=>{
+      var room = socket.room;
+      if(room !== undefined && rooms[room] !== undefined) {
+        var nickname = socket.nickname;
+        console.log('nickname'+ nickname + 'has been disconnected');
+          // 지우기
+        if(nickname !== undefined) {
+          if(rooms[room].socket_ids !== undefined && rooms[room].socket_ids[nickname] !== undefined) delete rooms[room].socket_ids[nickname];
+        }
+        data = {msg: nickname + '님이 나가셨습니다'};
+        io.sockets.in(room).emit('broadcast_msg',data);
+        io.sockets.in(room).emit('userList',{users: Object.keys(rooms[room].socket_ids)});
+      }
+  });
+
+
+  socket.on('send_msg',(data)=>{
+      var room = socket.room;
+      var nickname = socket.nickname;
+      console.log('in send msg room is '+room);
+      data.msg = nickname + ':' + data.msg;
+      if(data.to === 'All'){
+        socket.broadcast.to(room).emit('broadcast_msg',data);
+      }
+      else {
+        var socket_id = rooms[room].socket_ids[data.to];
+        if(socket_id !== undefined) {
+          data.msg = '귓속말: ' + data.msg;
+          io.sockets.connected[socket_id].emit('broadcast_msg',data);
+        }
+      }
+  });
+
+
+});
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  var bind = typeof port === 'string'
+    ? 'Pipe ' + port
+    : 'Port ' + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}
+module.exports = app;

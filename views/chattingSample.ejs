@@ -1,0 +1,142 @@
+<!--<!DOCTYPE html>-->
+<!--<html>-->
+<!--    <head>-->
+<!--        <title></title>-->
+<!--        <script src = "http://localhost:3001/socket.io/socket.io.js"></script>-->
+<!--        <script-->
+<!--                src="https://code.jquery.com/jquery-3.4.1.min.js"-->
+<!--                integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="-->
+<!--                crossorigin="anonymous">-->
+<!--        </script>-->
+
+<!--    </head>-->
+<!--<body>-->
+<!--    <p>Send Message</p>-->
+<!--    <input type = "text" id = "msgbox"/>-->
+<!--    <br>-->
+<!--    <span id = "msgs"></span>-->
+<!--    <script type = "text/javascript">-->
+<!--        var socket = io.connect('http://localhost:3001');-->
+<!--        $('#msgbox').keyup((event)=>{-->
+<!--            if(event.which === 13) {-->
+<!--                socket.emit('fromclient',{msg:$('#msgbox').val()});-->
+<!--                $('#msgbox').val('');-->
+<!--            }-->
+<!--        });-->
+<!--        socket.on('toclient',(data)=>{-->
+<!--           console.log(data.msg);-->
+<!--           $('#msgs').append(data.msg + '<BR>');-->
+<!--        });-->
+<!--    </script>-->
+<!--</body>-->
+<!--</html>-->
+
+
+<!--<html>-->
+<!--<head>-->
+<!--    <title></title>-->
+<!--            <script src = "http://localhost:3001/socket.io/socket.io.js"></script>-->
+<!--            <script-->
+<!--                    src="https://code.jquery.com/jquery-3.4.1.min.js"-->
+<!--                    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="-->
+<!--                    crossorigin="anonymous">-->
+<!--            </script>-->
+<!--</head>-->
+<!--<body>-->
+<!--<b>Send message</b><p>-->
+<!--    Name <input type="text" id="nickname" /> <input type="button" id="changename" value="Change name"/><br>-->
+<!--    To-->
+<!--    <select id= "to">-->
+<!--        <option value="All">ALL</option>-->
+<!--    </select>-->
+<!--    Message  <input type="text" id="msgbox"/>-->
+<!--    <br>-->
+<!--    <span id="msgs"></span>-->
+<!--    <script type="text/javascript">-->
+<!--        var socket = io.connect('http://localhost:3001');-->
+<!--        $('#changename').click(function(){-->
+<!--            socket.emit('changename',{nickname: $('#nickname').val()});-->
+<!--        });-->
+<!--        $("#msgbox").keyup(function(event) {-->
+<!--            if (event.which == 13) {-->
+<!--                socket.emit('send_msg',{to:$('#to').val(),msg: $('#msgbox').val()});-->
+<!--                $('#msgbox').val('');-->
+<!--            }-->
+<!--        });-->
+<!--        socket.on('new',function(data){-->
+<!--            console.log(data.nickname);-->
+<!--            $('#nickname').val(data.nickname);-->
+<!--        });-->
+<!--        // 새로운 사용자가 들어오거나, 사용자가 이름을 바꿨을때 "To" 리스트를 변경함-->
+<!--        socket.on('userlist',function(data){-->
+<!--            var users = data.users;-->
+<!--            console.log(users);-->
+<!--            console.log(data.users.length);-->
+<!--            $('#to').empty().append('<option value="ALL">ALL</option>');-->
+<!--            for(var i=0;i<data.users.length;i++){-->
+<!--                $('#to').append('<option value="'+users[i]+'">'+users[i]+"</option>");-->
+<!--            }-->
+<!--        });-->
+<!--        socket.on('broadcast_msg',function(data){-->
+<!--            console.log(data.msg);-->
+<!--            $('#msgs').append(data.msg+'<BR>');-->
+<!--        });-->
+<!--    </script>-->
+<!--</body>-->
+<!--</html>-->
+
+
+<html>
+
+<head>
+        <title></title>
+                <script src = "http://localhost:3001/socket.io/socket.io.js"></script>
+                <script
+                        src="https://code.jquery.com/jquery-3.4.1.min.js"
+                        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+                        crossorigin="anonymous">
+                </script>
+</head>
+<body>
+<b>Welcome ROOM : <%= room%></b><p>
+    Name <input type="text" id="nickname" /> <input type="button" id="changename" value="Change name"/><br>
+    To
+    <select id="to">
+        <option value="All">ALL</option>
+    </select>
+    Message  <input type="text" id="msgbox"/>
+    <br>
+    <span id="msgs"></span>
+    <script type="text/javascript">
+        var socket = io.connect('http://localhost:3001/');
+        socket.emit('joinroom',{room:'<%=room%>'});
+        $('#changename').click(function(){
+            socket.emit('changename',{nickname:$('#nickname').val()});
+        });
+        $("#msgbox").keyup(function(event) {
+            if (event.which == 13) {
+                socket.emit('send_msg',{to:$('#to').val(),msg:$('#msgbox').val()});
+                $('#msgbox').val('');
+            }
+        });
+        socket.on('new',function(data){
+            console.log(data.nickname);
+            $('#nickname').val(data.nickname);
+        });
+        // 새로운 사용자가 들어오거나, 사용자가 이름을 바꿨을때 "To" 리스트를 변경함
+        socket.on('userList',function(data){
+            var users = data.users;
+            console.log(users);
+            console.log(data.users.length);
+            $('#to').empty().append('<option value="All">ALL</option>');
+            for(var i=0;i<data.users.length;i++){
+                $('#to').append('<option value="'+users[i]+'">'+users[i]+"</option>");
+            }
+        });
+        socket.on('broadcast_msg',function(data){
+            console.log(data.msg);
+            $('#msgs').append(data.msg+'<BR>');
+        });
+    </script>
+</body>
+</html>

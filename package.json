@@ -1,0 +1,14 @@
+{
+  "name": "testApp",
+  "version": "1.0.0",
+  "dependencies": {
+    "cookie-parser": "latest",
+    "express": "latest",
+    "express-session": "latest",
+    "http-errors": "latest",
+    "mongoose": "latest",
+    "morgan": "latest",
+    "session-file-store": "latest",
+    "socket.io": "^2.3.0"
+  }
+}
