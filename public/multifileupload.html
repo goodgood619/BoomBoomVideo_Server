@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>multifileupload</title>
+</head>
+<body>
+    <p> using multiparty</p>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        name <input type = "text" name="username">
+        <p>
+            file : <input type ="file" name="myfile1" >
+            <input type = "file" name="myfile2">
+            <input type = "submit" value = "upload">
+        </p>
+    </form>
+    <p>using multer</p>
+    <form action="/simpleupload" method="post" enctype="multipart/form-data">
+        name <input type = "text" name="username">
+        <p>
+            file : <input type ="file" name="myfile3">
+            <input type = "submit" value = "upload">
+        </p>
+    </form>
+</body>
+</html>

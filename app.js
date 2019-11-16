@@ -9,8 +9,75 @@ var session = require('express-session');
 var FileStore = require('session-file-store')(session);
 var mongoose = require('mongoose');
 var app = express();
+var uploadRouter = require('./routes/upload');
+var multer = require('multer');
+// single이면 한개(single 뒤에 붙는건 name key값을 의미함) , 여러개면?
+// app.post('/simpleupload',multer({dest:'/home/alcuk1/IdeaProjects/testApp/public/images/'}).single('myfile3'),(req,res)=>{
+//   console.log('req.body : '+ JSON.stringify(req.body)); //이미지가 아닌 나머지 데이터
+//   console.log('req file : '+ JSON.stringify(req.file));
+//   //res.status(204).end();
+//   var data = req.body;
+//   data.imagepathname = __dirname + '/public/images/' + req.filename;
+//  // res.send(express.static(req.file.path)); //이미지 파일 자체를 보내는것
+//   res.render('imageshow',{file: 'home/alcuk1/IdeaProjects/testApp/public/images/${req.file.filename}'});
+// });
+const storage = multer.diskStorage({
+    destination: './public/images/',
+  filename: function (req,file,cb) {
+      cb(null,file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+  }
+});
+// function checkFileType(file,cb) {
+//   const filetypes = /jpeg|jpg|png|gif/;
+//   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+//   const mimetype = filetypes.test(file.mimeType);
+//
+//   if(mimetype && extname) {
+//     return cb(null,true);
+//   } else{
+//     cb('error : images only');
+//   }
+//
+// }
+const upload = multer({
+  storage: storage
+  // fileFilter : function (req,file,cb) {
+  //     checkFileType(file,cb);
+  // }
+}).single('myfile3');
 
-var server = require('./bin/www');
+app.post('/simpleupload',(req,res)=>{
+  upload(req,res,(err)=>{
+    if(err) {
+      res.render('imageshow',{msg: err});
+    }
+    else {
+        if(req.file === undefined) {
+          res.render('imageshow',{msg: 'error: no files selected!'});
+        } else {
+          res.render('imageshow',{
+            msg: 'file uploaded' ,
+            file : 'images/'+'${req.file.filename}'
+            // test : 'ok'
+          })
+        }
+    }
+  });
+});
+// fields([{name : key1},{name2: key2}, ...])
+// app.post('/simpleupload',multerupload.fields([{name:'myfile3'},{name: 'myfile4'}]),(req,res)=>{
+//   // console.log('req.body : '+ req.body); //이미지가 아닌 나머지 데이터
+//   // console.log('req file : '+ req.file);
+//   res.status(204).end();
+// });
+// simple using jwt -simple()
+// var jwt = require('jwt-simple');
+// var body = {name : 'googood',id : 'notbad',company:'good'};
+// var secret = 'mysecret';
+// var token = jwt.encode(body,secret);
+// console.log('token :'+token);
+// var decoded = jwt.decode(token,secret);
+// console.log('decoded:'+JSON.stringify(decoded));
 
 mongoose.connect('mongodb://localhost:27017/test', (err) => {
     if (err) {
@@ -43,6 +110,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // get Mapping
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/upload',uploadRouter);
 
 app.post('/',function (req,res) {
   id = req.body.id;
