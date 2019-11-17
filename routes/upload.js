@@ -2,8 +2,10 @@ var express = require('express');
 var router = express.Router();
 var multiparty = require('multiparty');
 var fs = require('fs');
+var multer = require('multer');
+var path = require('path');
 
-router.post('/',(req,res,next)=>{
+router.post('/multiparty',(req,res,next)=>{
     var form = new multiparty.Form();
 
     // get field name & value( 파일이 아닌 다른 필드가 들어왔을때 발생)
@@ -53,4 +55,75 @@ router.post('/',(req,res,next)=>{
     form.parse(req);
 });
 
+// single이면 한개(single 뒤에 붙는건 name key값을 의미함) , 여러개면?
+// app.post('/simpleupload',multer({dest:'/home/alcuk1/IdeaProjects/testApp/public/images/'}).single('myfile3'),(req,res)=>{
+//   console.log('req.body : '+ JSON.stringify(req.body)); //이미지가 아닌 나머지 데이터
+//   console.log('req file : '+ JSON.stringify(req.file));
+//   //res.status(204).end();
+//   var data = req.body;
+//   data.imagepathname = __dirname + '/public/images/' + req.filename;
+//  // res.send(express.static(req.file.path)); //이미지 파일 자체를 보내는것
+//   res.render('imageshow',{file: 'home/alcuk1/IdeaProjects/testApp/public/images/${req.file.filename}'});
+// });
+
+router.post('/multer',(req,res)=> {
+    const storage = multer.diskStorage({
+        destination: (req,file,cb)=>{
+            cb(null,'public/images/');
+        } ,
+        filename: function (req,file,cb) {
+            cb(null,file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+        }
+    });
+function checkFileType(file,cb) {
+  const filetypes = /jpeg|jpg|png|gif/;
+  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = filetypes.test(file.mimetype);
+
+  if(mimetype && extname) {
+    return cb(null,true);
+  } else{
+    cb('error : images only');
+  }
+
+}
+    const upload = multer({
+        storage: storage ,
+        fileFilter : function (req,file,cb) {
+            checkFileType(file,cb);
+        }
+    }).single('myfile3');
+
+    upload(req,res,(err)=>{
+        if(err) {
+            res.render('imageshow',{test: err});
+        }
+        else {
+            if(req.file === undefined) {
+                res.render('imageshow',{test: 'error: no files selected!'});
+            } else {
+                res.set({'content-type':'text/html; charset=utf-8'});
+                var testpath = req.file.filename;
+                var upload = '/images/'+testpath;
+                res.render('imageshow',{
+                    file : upload,
+                    test : 'ok'
+                })
+            }
+        }
+    });
+});
+
+
+
+
+
 module.exports = router;
+
+
+// fields([{name : key1},{name2: key2}, ...])
+// app.post('/simpleupload',multerupload.fields([{name:'myfile3'},{name: 'myfile4'}]),(req,res)=>{
+//   // console.log('req.body : '+ req.body); //이미지가 아닌 나머지 데이터
+//   // console.log('req file : '+ req.file);
+//   res.status(204).end();
+// });

@@ -6,7 +6,7 @@
 </head>
 <body>
     <p> using multiparty</p>
-    <form action="/upload" method="post" enctype="multipart/form-data">
+    <form action="/upload/multiparty" method="post" enctype="multipart/form-data">
         name <input type = "text" name="username">
         <p>
             file : <input type ="file" name="myfile1" >
@@ -15,7 +15,7 @@
         </p>
     </form>
     <p>using multer</p>
-    <form action="/simpleupload" method="post" enctype="multipart/form-data">
+    <form action="/upload/multer" method="post" enctype="multipart/form-data">
         name <input type = "text" name="username">
         <p>
             file : <input type ="file" name="myfile3">
