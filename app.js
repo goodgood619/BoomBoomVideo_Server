@@ -8,12 +8,14 @@ var usersRouter = require('./routes/users');
 var uploadRouter = require('./routes/upload');
 var asyncRouter = require('./routes/async_practice');
 var promiseRouter = require('./routes/promise_practice');
+var axiosTestRouter = require('./routes/axios_test');
 var session = require('express-session');
 var FileStore = require('session-file-store')(session);
 var mongoose = require('mongoose');
 var heapdump = require('heapdump');
 var redis = require('redis');
 var JSON = require('JSON');
+var cors = require('cors');
 var bodyParser = require('body-parser');
 var app = express();
 var memoryLeak = [];
@@ -67,8 +69,8 @@ app.use('/users', usersRouter);
 app.use('/upload',uploadRouter);
 app.use('/async_practice',asyncRouter);
 app.use('/promise',promiseRouter);
-
-
+app.use('/api',axiosTestRouter);
+app.use(cors());
 app.post('/',function (req,res) {
   id = req.body.id;
   res.cookie('id',id);
