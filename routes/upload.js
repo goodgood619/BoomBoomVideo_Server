@@ -114,12 +114,7 @@ function checkFileType(file,cb) {
     });
 });
 
-
-
-
-
 module.exports = router;
-
 
 // fields([{name : key1},{name2: key2}, ...])
 // app.post('/simpleupload',multerupload.fields([{name:'myfile3'},{name: 'myfile4'}]),(req,res)=>{

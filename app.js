@@ -71,6 +71,7 @@ app.use('/async_practice',asyncRouter);
 app.use('/promise',promiseRouter);
 app.use('/api',axiosTestRouter);
 app.use(cors());
+app.options('*',cors());
 app.post('/',function (req,res) {
   id = req.body.id;
   res.cookie('id',id);
@@ -79,7 +80,7 @@ app.post('/',function (req,res) {
 
 
 
-app.use((req,res,next)=>{
+app.use((req,res,next)=> {
     req.cache = client;
     next();
 });
