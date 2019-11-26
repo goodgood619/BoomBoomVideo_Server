@@ -112,4 +112,51 @@ router.post('/imageupload',(req,res)=>{
     });
 })
 
+
+router.get('/videoupload',(req,res)=> {
+    //req.query.path = video이름
+    const streamname = req.query.path
+    const streampath = '/home/alcuk1/IdeaProjects/testApp/public/videos/' + streamname + '.mp4'
+    var stream = fs.createReadStream(streampath)
+    var count = 0;
+    stream.on('data',(data)=>{
+        count ++;
+        console.log('data count='+count);
+        res.write(data)
+    })
+
+    stream.on('end',()=>{
+        console.log('end streaming')
+        res.end()
+    })
+
+    stream.on('error',(err)=>{
+        console.log(err)
+        res.end('500 Internal Server '+err)
+    })
+})
+
+router.post('/saveboard',(req,res)=> {
+    const boardcontentdb = new boardcontent({category : req.body.category,likenumber: 0, dislikenumber : 0 , linkaddress: req.body.linkaddress,
+        title : req.body.title, author : req.body.author , password : req.body.password ,reportcnt : 0})
+    boardcontentdb.save((err) => {
+        if(err) {
+            console.log(err)
+            throw err
+        }
+        res.json({test: 'ok'})
+    })
+})
+
+router.get('/dataupload',(req,res)=> {
+    boardcontent.find((err,data)=>{
+        if(err) {
+            console.log(err)
+            throw err
+        }
+        res.json({test : data})
+    })
+})
+
+
 module.exports = router;
