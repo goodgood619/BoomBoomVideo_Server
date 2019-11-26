@@ -11,5 +11,7 @@ var imageaxiosdb = new Schema({
     filename : "",
     path : "",
     size : Number
+
+
 })
 module.exports = module.exports = mongoose.model('imagedata',imageaxiosdb);

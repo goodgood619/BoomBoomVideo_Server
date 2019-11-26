@@ -4,6 +4,7 @@ var axios = require('../model/axiosTestDB');
 var imageaxios = require('../model/axiosfileDB')
 var multer = require('multer');
 var path = require('path');
+var fs = require('fs')
 router.get('/axios',(req,res)=> {
 
     // console.log('req body test', req.body.test);
