@@ -19,6 +19,7 @@
     "jschardet": "^2.1.1",
     "jwt-simple": "^0.5.6",
     "mongoose": "latest",
+    "mongoose-auto-increment": "^5.0.1",
     "morgan": "latest",
     "multer": "^1.4.2",
     "multiparty": "^4.2.1",

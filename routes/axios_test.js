@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var axios = require('../model/axiosTestDB');
 var imageaxios = require('../model/axiosfileDB')
+var boardcontent = require('../model/boardContent')
 var multer = require('multer');
 var path = require('path');
 var fs = require('fs')
