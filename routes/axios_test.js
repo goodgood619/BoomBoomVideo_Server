@@ -138,23 +138,34 @@ router.get('/videoupload',(req,res)=> {
 
 router.post('/saveboard',(req,res)=> {
     const boardcontentdb = new boardcontent({category : req.body.category,likenumber: 0, dislikenumber : 0 , linkaddress: req.body.linkaddress,
-        title : req.body.title, author : req.body.author , password : req.body.password ,reportcnt : 0})
-    boardcontentdb.save((err) => {
+        title : req.body.title, author : req.body.author , password : req.body.password ,reportcnt : 0, iframetoggle : false})
+    boardcontentdb.save((err,obj) => {
         if(err) {
             console.log(err)
             throw err
         }
-        res.json({test: 'ok'})
+        res.json({test: obj})
     })
 })
 
-router.get('/dataupload',(req,res)=> {
-    boardcontent.find((err,data)=>{
-        if(err) {
+router.post('/dataupload',(req,res)=> {
+    const page = req.body.page
+    boardcontent.find().limit(100).skip(page*3).exec((err,data)=>{
+        if(err){
             console.log(err)
             throw err
         }
-        res.json({test : data})
+        res.json({test:data})
+    })
+})
+
+router.post('/removeboardcontent',(req,res)=>{
+    boardcontent.remove({boardnumber : req.body.boardnumber},(err)=>{
+        if(err){
+            console.log(err)
+            throw err
+        }
+        res.json({test:'removeboardcontent ok'})
     })
 })
 

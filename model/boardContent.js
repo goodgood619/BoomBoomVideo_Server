@@ -10,7 +10,8 @@ const boardcontentdb = new Schema({
     title : "",
     author : "",
     password : "",
-    reportcnt : Number
+    reportcnt : Number,
+    iframetoggle : false
 })
 
 autoIncrement.initialize(mongoose.connection)
