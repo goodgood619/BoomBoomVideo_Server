@@ -107,6 +107,8 @@
     Message  <input type="text" id="msgbox"/>
     <br>
     <span id="msgs"></span>
+
+
     <script type="text/javascript">
         var socket = io.connect('http://localhost:3001/');
         socket.emit('joinroom',{room:'<%=room%>'});
