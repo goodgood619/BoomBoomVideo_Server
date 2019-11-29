@@ -6,6 +6,7 @@ var boardcontent = require('../model/boardContent')
 var multer = require('multer');
 var path = require('path');
 var fs = require('fs')
+var Promise = require('es6-promise')
 router.get('/axios',(req,res)=> {
 
     // console.log('req body test', req.body.test);
@@ -150,15 +151,40 @@ router.post('/saveboard',(req,res)=> {
 
 router.post('/dataupload',(req,res)=> {
     const page = req.body.page
-    boardcontent.find().limit(100).skip(page*3).exec((err,data)=>{
-        if(err){
-            console.log(err)
-            throw err
-        }
-        res.json({test:data})
+    var jsonobject = []
+    var async1 = ()=>{
+        return new Promise((fulfilled,rejected)=>{
+            boardcontent.find().limit(page*3+3).skip(page*3).exec((err,data)=>{
+                if(err){
+                    console.log(err)
+                    throw err
+                }
+                fulfilled(data)
+            })
+        })
+    }
+    var async2 = ()=>{
+        return new Promise((fulfilled,rejected)=>{
+            boardcontent.count().exec((err,data)=>{
+                if(err){
+                    console.log(err)
+                    throw err
+                }
+                fulfilled(data)
+            })
+        })
+    }
+
+    async1().then((data)=>{
+        jsonobject.push({test:data})
+        async2().then((data)=>{
+            jsonobject.push({total: data})
+            res.json({
+                data : jsonobject
+            })
+        })
     })
 })
-
 router.post('/removeboardcontent',(req,res)=>{
     boardcontent.remove({boardnumber : req.body.boardnumber},(err)=>{
         if(err){
@@ -169,5 +195,25 @@ router.post('/removeboardcontent',(req,res)=>{
     })
 })
 
+router.post('/nextpagination',(req,res)=>{
+    const page = req.body.page
+    boardcontent.find().limit(3).skip(page*3).exec((err,data)=>{
+        if(err){
+            console.log(err)
+            throw err
+        }
+        res.json({test:data})
+    })
+})
+router.post('/pastpagination',(req,res)=>{
+    const page = req.body.page
+    boardcontent.find().limit(3).skip(page*3).exec((err,data)=>{
+        if(err){
+            console.log(err)
+            throw err
+        }
+        res.json({test:data})
+    })
+})
 
 module.exports = router;
