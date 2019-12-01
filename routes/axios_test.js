@@ -7,6 +7,9 @@ var multer = require('multer');
 var path = require('path');
 var fs = require('fs')
 var Promise = require('es6-promise')
+const request = require('request')
+const cheerio = require('cheerio')
+
 router.get('/axios',(req,res)=> {
 
     // console.log('req body test', req.body.test);
@@ -140,13 +143,29 @@ router.get('/videoupload',(req,res)=> {
 router.post('/saveboard',(req,res)=> {
     const boardcontentdb = new boardcontent({category : req.body.category,likenumber: 0, dislikenumber : 0 , linkaddress: req.body.linkaddress,
         title : req.body.title, author : req.body.author , password : req.body.password ,reportcnt : 0, iframetoggle : false})
-    boardcontentdb.save((err,obj) => {
-        if(err) {
-            console.log(err)
-            throw err
+    let url = req.body.linkaddress
+    request(url,(error,res,body)=> {
+        // console.log(body)
+        const $ = cheerio.load(body)
+        const title = $("title")
+        let result = []
+        for(let i = 0;i<title.length;i++){
+            result.push(title[i].children[0].data);
         }
-        res.json({test: obj})
+        console.log(result)
+        // console.log(title)
+        // var who = $('#text-container').text('text')
+        // console.log(who.html())
     })
+
+    // boardcontentdb.save((err,obj) => {
+    //     if(err) {
+    //         console.log(err)
+    //         throw err
+    //     }
+    //     res.json({test: obj})
+    // })
+
 })
 
 router.post('/dataupload',(req,res)=> {
