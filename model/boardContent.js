@@ -11,7 +11,14 @@ const boardcontentdb = new Schema({
     author : "",
     password : "",
     reportcnt : Number,
-    iframetoggle : false
+    iframetoggle : false,
+    replytoggle : false,
+    linkauthor : "",
+    linktitle : "",
+    reg_dt : {
+        type : Date,
+        default : Date.now
+    }
 })
 
 autoIncrement.initialize(mongoose.connection)

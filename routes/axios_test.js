@@ -7,8 +7,7 @@ var multer = require('multer');
 var path = require('path');
 var fs = require('fs')
 var Promise = require('es6-promise')
-const request = require('request')
-const cheerio = require('cheerio')
+const puppeteer = require('puppeteer')
 
 router.get('/axios',(req,res)=> {
 
@@ -141,30 +140,61 @@ router.get('/videoupload',(req,res)=> {
 })
 
 router.post('/saveboard',(req,res)=> {
-    const boardcontentdb = new boardcontent({category : req.body.category,likenumber: 0, dislikenumber : 0 , linkaddress: req.body.linkaddress,
-        title : req.body.title, author : req.body.author , password : req.body.password ,reportcnt : 0, iframetoggle : false})
     let url = req.body.linkaddress
-    request(url,(error,res,body)=> {
-        // console.log(body)
-        const $ = cheerio.load(body)
-        const title = $("title")
-        let result = []
-        for(let i = 0;i<title.length;i++){
-            result.push(title[i].children[0].data);
-        }
-        console.log(result)
-        // console.log(title)
-        // var who = $('#text-container').text('text')
-        // console.log(who.html())
+    var async1 =  ()=>{
+        return new Promise((fulfilled,rejected)=>{
+            puppeteer.launch({headless: true}).then(async browser => {
+                const page = await browser.newPage()
+                await page.goto(url)
+                try {
+                    await page.waitForSelector('div h1')
+                    await page.waitForSelector('div ytd-video-owner-renderer div ytd-channel-name div div yt-formatted-string a')
+                    const title = await page.evaluate(()=> document.querySelector('div h1').textContent)
+                    const who = await page.evaluate(()=>document.querySelector('div ytd-channel-name div div yt-formatted-string a').textContent)
+                    // console.log(title)
+                    // console.log(who)
+                    fulfilled({title,who})
+                }
+                catch(err){
+                    // console.log(err)
+                    rejected(err)
+                }
+            })
+        })
+    }
+    var async2 = () =>{
+        return new Promise((done,reject)=>{
+            if(url.match("watch")){
+                const linkaddress = url.substring(url.indexOf('=')+1,url.size)
+                const data = 'https://www.youtube.com/embed/' + linkaddress
+                console.log(data)
+                done(data)
+            }
+            else {
+                const linkaddress = url.substring(url.indexOf('.be')+4,url.size)
+                const data = 'https://www.youtube.com/embed/' + linkaddress
+                console.log(data)
+                done(data)
+            }
+        })
+    }
+    async1().then(({title,who})=> {
+        async2().then((linkaddress)=>{
+            const boardcontentdb = new boardcontent({category : req.body.category,likenumber: 0, dislikenumber : 0 , linkaddress: linkaddress,
+                title : req.body.title, author : req.body.author , password : req.body.password ,reportcnt : 0,
+                iframetoggle : false,replytoggle : false,linkauthor : who, linktitle : title})
+            boardcontentdb.save((err,obj) => {
+                if(err) {
+                    console.log(err)
+                    throw err
+                }
+                res.json({test: obj})
+            })
+        })
+    }).catch((error)=>{
+        console.log(error)
+        res.json({err : error})
     })
-
-    // boardcontentdb.save((err,obj) => {
-    //     if(err) {
-    //         console.log(err)
-    //         throw err
-    //     }
-    //     res.json({test: obj})
-    // })
 
 })
 
