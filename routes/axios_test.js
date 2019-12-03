@@ -195,7 +195,7 @@ router.post('/saveboard',(req,res)=> {
         console.log(error)
         res.json({err : error})
     })
-
+//test commit
 })
 
 router.post('/dataupload',(req,res)=> {
@@ -214,7 +214,7 @@ router.post('/dataupload',(req,res)=> {
     }
     var async2 = ()=>{
         return new Promise((fulfilled,rejected)=>{
-            boardcontent.count().exec((err,data)=>{
+            boardcontent.countDocuments().exec((err,data)=>{
                 if(err){
                     console.log(err)
                     throw err
