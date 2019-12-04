@@ -18,6 +18,7 @@
     "http-errors": "latest",
     "iconv": "^2.3.5",
     "iconv-lite": "^0.5.0",
+    "ip": "^1.1.5",
     "jschardet": "^2.1.1",
     "jwt-simple": "^0.5.6",
     "mongoose": "^5.7.13",

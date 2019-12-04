@@ -1,13 +1,14 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
 var axios = require('../model/axiosTestDB');
 var imageaxios = require('../model/axiosfileDB')
 var boardcontent = require('../model/boardContent')
-var multer = require('multer');
-var path = require('path');
-var fs = require('fs')
-var Promise = require('es6-promise')
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs')
+const Promise = require('es6-promise')
 const puppeteer = require('puppeteer')
+const ip = require('ip')
 
 router.get('/axios',(req,res)=> {
 
@@ -195,7 +196,6 @@ router.post('/saveboard',(req,res)=> {
         console.log(error)
         res.json({err : error})
     })
-//test commit
 })
 
 router.post('/dataupload',(req,res)=> {
@@ -265,4 +265,32 @@ router.post('/pastpagination',(req,res)=>{
     })
 })
 
+
+router.post('/likeboardcontent',async (req,res)=>{
+
+    // 그냥 api저장하는 table을 만들자..
+    console.log(ip.address())
+    // boardnumber 받아서 증가시키면됨
+    var likenumber = req.body.likenumber
+    likenumber++
+    boardcontent.findOneAndUpdate({boardnumber: req.body.boardnumber}, {likenumber: likenumber},{new : true, upsert :true}).exec((err,data)=>{
+        if(err){
+            console.log(err)
+            throw err
+        }
+        res.json({test: data})
+    })
+})
+
+router.post('/dislikeboardcontent',async (req,res)=>{
+    var dislikenumber = req.body.dislikenumber
+    dislikenumber++
+    boardcontent.findOneAndUpdate({boardnumber : req.body.boardnumber},{dislikenumber : dislikenumber},{new : true, upsert : true}).exec((err,data)=>{
+        if(err){
+            console.log(err)
+            throw err
+        }
+        res.json({test:data})
+    })
+})
 module.exports = router;
