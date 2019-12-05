@@ -140,7 +140,7 @@ router.get('/videoupload',(req,res)=> {
     })
 })
 
-router.post('/saveboard',(req,res)=> {
+router.post('/saveboard',async (req,res)=> {
     let url = req.body.linkaddress
     var async1 =  ()=>{
         return new Promise((fulfilled,rejected)=>{
@@ -198,7 +198,7 @@ router.post('/saveboard',(req,res)=> {
     })
 })
 
-router.post('/dataupload',(req,res)=> {
+router.post('/dataupload',async (req,res)=> {
     const page = req.body.page
     var jsonobject = []
     var async1 = ()=>{
@@ -237,19 +237,45 @@ router.post('/dataupload',(req,res)=> {
 
 router.post('/removeboardcontent',(req,res)=>{
     // 입력했을때 비밀번호를 받아서 그것이 일치하면 지우고,아니면 못지움
-
-    if(ipinstance.getInstance().get(JSON.stringify({IP: ip.address(), like: 'likenumber',boardnumber : req.body.boardnumber}))){
-        ipinstance.getInstance().remove(JSON.stringify({IP: ip.address(), like: 'likenumber',boardnumber : req.body.boardnumber}))
+    var async1 = () =>{
+        return new Promise((ok,reject)=>{
+            if(ipinstance.getInstance().get(JSON.stringify({IP: ip.address(), like: 'likenumber',boardnumber : req.body.boardnumber}))){
+                ipinstance.getInstance().remove(JSON.stringify({IP: ip.address(), like: 'likenumber',boardnumber : req.body.boardnumber}))
+            }
+            ok('1')
+        })
     }
-    if(ipinstance.getInstance().get(JSON.stringify({IP: ip.address(),dislike: 'dislikenumber',boardnumber : req.body.boardnumber}))){
-        ipinstance.getInstance().remove(JSON.stringify({IP: ip.address(),dislike: 'dislikenumber',boardnumber : req.body.boardnumber}))
+    var async2 = () => {
+        return new Promise((ok,reject)=>{
+            if(ipinstance.getInstance().get(JSON.stringify({IP: ip.address(),dislike: 'dislikenumber',boardnumber : req.body.boardnumber}))){
+                ipinstance.getInstance().remove(JSON.stringify({IP: ip.address(),dislike: 'dislikenumber',boardnumber : req.body.boardnumber}))
+            }
+            ok('2')
+        })
+    }
+    var async3 = ()=>{
+        return new Promise((ok,reject)=>{
+            if(ipinstance.getInstance().get(JSON.stringify({IP: ip.address(),reportcnt: 'reportcnt',boardnumber : req.body.boardnumber}))){
+                ipinstance.getInstance().remove(JSON.stringify({IP: ip.address(), reportcnt: 'reportcnt',boardnumber : req.body.boardnumber}), 1)
+            }
+            ok('3')
+        })
     }
     boardcontent.deleteOne({boardnumber : req.body.boardnumber,password: req.body.password}).exec((err,data)=>{
         if(err){
             console.log(err)
             throw err
         }
-        if(data.deletedCount == 1){
+        if(data.deletedCount == 1) {
+            async1().then((data)=>{
+                if(data == '1') {
+                    async2().then((data)=>{
+                        if(data == '2'){
+                            async3.then()
+                        }
+                    })
+                }
+            }).catch(err)
             res.json({test:'removeboardcontent ok'})
         }
         else {
@@ -328,4 +354,22 @@ router.post('/dislikeboardcontent',async (req,res)=> {
     }
 })
 
+router.post('/reportcntcontent',async (req,res)=>{
+    if(ipinstance.getInstance().has(JSON.stringify({IP : ip.address(),reportcnt : 'reportcnt',boardnumber :req.body.boardnumber}))) {
+        res.json({test : 'no'})
+    }
+    else {
+        ipinstance.getInstance().put(JSON.stringify({IP: ip.address(), reportcnt: 'reportcnt',boardnumber : req.body.boardnumber}), 1)
+        var reportcnt = req.body.reportcnt
+        reportcnt++
+        boardcontent.findOneAndUpdate({boardnumber :req.body.number,reportcnt : req.body.reportcnt},{new : true,upsert : true}).exec((err,data)=>{
+            if(err){
+                console.log(err)
+                throw err
+            }
+            res.json({test:data})
+        })
+    }
+
+})
 module.exports = router;
