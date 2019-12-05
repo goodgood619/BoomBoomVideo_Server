@@ -234,13 +234,28 @@ router.post('/dataupload',(req,res)=> {
         })
     })
 })
+
 router.post('/removeboardcontent',(req,res)=>{
-    boardcontent.remove({boardnumber : req.body.boardnumber},(err)=>{
+    // 입력했을때 비밀번호를 받아서 그것이 일치하면 지우고,아니면 못지움
+
+    if(ipinstance.getInstance().get(JSON.stringify({IP: ip.address(), like: 'likenumber',boardnumber : req.body.boardnumber}))){
+        ipinstance.getInstance().remove(JSON.stringify({IP: ip.address(), like: 'likenumber',boardnumber : req.body.boardnumber}))
+    }
+    if(ipinstance.getInstance().get(JSON.stringify({IP: ip.address(),dislike: 'dislikenumber',boardnumber : req.body.boardnumber}))){
+        ipinstance.getInstance().remove(JSON.stringify({IP: ip.address(),dislike: 'dislikenumber',boardnumber : req.body.boardnumber}))
+    }
+    boardcontent.deleteOne({boardnumber : req.body.boardnumber,password: req.body.password}).exec((err,data)=>{
         if(err){
             console.log(err)
             throw err
         }
-        res.json({test:'removeboardcontent ok'})
+        if(data.deletedCount == 1){
+            res.json({test:'removeboardcontent ok'})
+        }
+        else {
+            res.json({test : '비밀번호가 틀렸습니다. 다시 입력해주세요'})
+        }
+        console.log(data)
     })
 })
 
@@ -266,31 +281,51 @@ router.post('/pastpagination',(req,res)=>{
 })
 
 
+var ipinstance = require('./Singleton')
 router.post('/likeboardcontent',async (req,res)=>{
 
     // 그냥 api저장하는 table을 만들자..
     console.log(ip.address())
-    // boardnumber 받아서 증가시키면됨
-    var likenumber = req.body.likenumber
-    likenumber++
-    boardcontent.findOneAndUpdate({boardnumber: req.body.boardnumber}, {likenumber: likenumber},{new : true, upsert :true}).exec((err,data)=>{
-        if(err){
-            console.log(err)
-            throw err
-        }
-        res.json({test: data})
-    })
+    if(ipinstance.getInstance().has(JSON.stringify({IP : ip.address(),like : 'likenumber',boardnumber : req.body.boardnumber}))){
+        res.json({test: 'no'})
+    }
+    else {
+        ipinstance.getInstance().put(JSON.stringify({IP: ip.address(), like: 'likenumber',boardnumber : req.body.boardnumber}), 1)
+        // boardnumber 받아서 증가시키면됨
+        var likenumber = req.body.likenumber
+        likenumber++
+        boardcontent.findOneAndUpdate({boardnumber: req.body.boardnumber}, {likenumber: likenumber}, {
+            new: true,
+            upsert: true
+        }).exec((err, data) => {
+            if (err) {
+                console.log(err)
+                throw err
+            }
+            res.json({test: data})
+        })
+    }
 })
 
-router.post('/dislikeboardcontent',async (req,res)=>{
-    var dislikenumber = req.body.dislikenumber
-    dislikenumber++
-    boardcontent.findOneAndUpdate({boardnumber : req.body.boardnumber},{dislikenumber : dislikenumber},{new : true, upsert : true}).exec((err,data)=>{
-        if(err){
-            console.log(err)
-            throw err
-        }
-        res.json({test:data})
-    })
+router.post('/dislikeboardcontent',async (req,res)=> {
+    if(ipinstance.getInstance().has(JSON.stringify({IP : ip.address(),dislike : 'dislikenumber',boardnumber : req.body.boardnumber}))) {
+        res.json({test :'no'})
+    }
+    else {
+        ipinstance.getInstance().put(JSON.stringify({IP: ip.address(), dislike: 'dislikenumber',boardnumber : req.body.boardnumber}), 1)
+        var dislikenumber = req.body.dislikenumber
+        dislikenumber++
+        boardcontent.findOneAndUpdate({boardnumber: req.body.boardnumber}, {dislikenumber: dislikenumber}, {
+            new: true,
+            upsert: true
+        }).exec((err, data) => {
+            if (err) {
+                console.log(err)
+                throw err
+            }
+            res.json({test: data})
+        })
+    }
 })
+
 module.exports = router;
