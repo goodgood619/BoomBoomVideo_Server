@@ -9,6 +9,7 @@ const fs = require('fs')
 const Promise = require('es6-promise')
 const puppeteer = require('puppeteer')
 const ip = require('ip')
+var ipinstance = require('./Singleton')
 
 router.get('/axios',(req,res)=> {
 
@@ -306,8 +307,6 @@ router.post('/pastpagination',(req,res)=>{
     })
 })
 
-
-var ipinstance = require('./Singleton')
 router.post('/likeboardcontent',async (req,res)=>{
 
     // 그냥 api저장하는 table을 만들자..
@@ -321,8 +320,7 @@ router.post('/likeboardcontent',async (req,res)=>{
         var likenumber = req.body.likenumber
         likenumber++
         boardcontent.findOneAndUpdate({boardnumber: req.body.boardnumber}, {likenumber: likenumber}, {
-            new: true,
-            upsert: true
+            new: true
         }).exec((err, data) => {
             if (err) {
                 console.log(err)
@@ -342,8 +340,7 @@ router.post('/dislikeboardcontent',async (req,res)=> {
         var dislikenumber = req.body.dislikenumber
         dislikenumber++
         boardcontent.findOneAndUpdate({boardnumber: req.body.boardnumber}, {dislikenumber: dislikenumber}, {
-            new: true,
-            upsert: true
+            new: true
         }).exec((err, data) => {
             if (err) {
                 console.log(err)
@@ -354,7 +351,8 @@ router.post('/dislikeboardcontent',async (req,res)=> {
     }
 })
 
-router.post('/reportcntcontent',async (req,res)=>{
+router.post('/reportcntcontent',async (req,res)=> {
+    // 신고가 5회이상들어오면 게시물삭제
     if(ipinstance.getInstance().has(JSON.stringify({IP : ip.address(),reportcnt : 'reportcnt',boardnumber :req.body.boardnumber}))) {
         res.json({test : 'no'})
     }
@@ -362,12 +360,12 @@ router.post('/reportcntcontent',async (req,res)=>{
         ipinstance.getInstance().put(JSON.stringify({IP: ip.address(), reportcnt: 'reportcnt',boardnumber : req.body.boardnumber}), 1)
         var reportcnt = req.body.reportcnt
         reportcnt++
-        boardcontent.findOneAndUpdate({boardnumber :req.body.number,reportcnt : req.body.reportcnt},{new : true,upsert : true}).exec((err,data)=>{
+        boardcontent.findOneAndUpdate({boardnumber :req.body.boardnumber},{reportcnt : reportcnt},{new : true}).exec((err,data)=>{
             if(err){
                 console.log(err)
                 throw err
             }
-            res.json({test:data})
+            res.json({test: data})
         })
     }
 
