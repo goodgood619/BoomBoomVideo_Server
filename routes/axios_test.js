@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
-var axios = require('../model/axiosTestDB');
-var imageaxios = require('../model/axiosfileDB')
-var boardcontent = require('../model/boardContent')
+const axios = require('../model/axiosTestDB');
+const imageaxios = require('../model/axiosfileDB')
+const boardcontent = require('../model/boardContent')
+const boardreply = require('../model/boardReply')
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs')
@@ -169,17 +170,18 @@ router.post('/saveboard',async (req,res)=> {
             if(url.match("watch")){
                 const linkaddress = url.substring(url.indexOf('=')+1,url.size)
                 const data = 'https://www.youtube.com/embed/' + linkaddress
-                console.log(data)
+               // console.log(data)
                 done(data)
             }
             else {
                 const linkaddress = url.substring(url.indexOf('.be')+4,url.size)
                 const data = 'https://www.youtube.com/embed/' + linkaddress
-                console.log(data)
+                //console.log(data)
                 done(data)
             }
         })
-    }
+    };
+
     async1().then(({title,who})=> {
         async2().then((linkaddress)=>{
             const boardcontentdb = new boardcontent({category : req.body.category,likenumber: 0, dislikenumber : 0 , linkaddress: linkaddress,
@@ -196,6 +198,18 @@ router.post('/saveboard',async (req,res)=> {
     }).catch((error)=>{
         console.log(error)
         res.json({err : error})
+    })
+})
+
+router.post('/savereply',(req,res)=>{
+    const boardreplydb = new boardreply({boardnumber : req.body.boardnumber, relikenumber: 0, reauthor : req.body.reauthor,
+    recontent : req.body.recontent, repassword: req.body.repassword,re_reportcnt: 0})
+    boardreplydb.save((err,data)=>{
+        if(err){
+            console.log(err)
+            throw err
+        }
+        res.json({test : 'ok'})
     })
 })
 
@@ -368,6 +382,6 @@ router.post('/reportcntcontent',async (req,res)=> {
             res.json({test: data})
         })
     }
-
 })
+
 module.exports = router;

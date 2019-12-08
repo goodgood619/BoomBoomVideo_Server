@@ -20,7 +20,6 @@ var bodyParser = require('body-parser');
 var app = express();
 var memoryLeak = [];
 function LeakedObject(){}
-
 client = redis.createClient(6379,'127.0.0.1');
 // simple using jwt -simple()
 // var jwt = require('jwt-simple');
@@ -62,7 +61,6 @@ app.use(session({
   store : new FileStore()
 }));
 app.use(express.static(path.join(__dirname, 'public')));
-
 // get Mapping
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
@@ -114,22 +112,22 @@ app.get('/profile/:name',(req,res,next)=>{
         res.json(value);
     });
 });
-app.use('/leak',(req,res,next)=>{
-    for(var i = 0;i<1000;i++){
-        memoryLeak.push(new LeakedObject());
-    }
-    // 여기서 process.memoryUsage().rss는 MB -> KB -> Byte임을 알수있다
-    res.send('making memory leak. Current memory usage : ' + (process.memoryUsage().rss/1024/1024) + 'MB');
-});
-app.use('/heapdump',(req,res,next)=>{
-    var filename = 'home/alcuk1/IdeaProjects/testApp/public/images/' + Date.now() + '.heapsnapshot';
-    heapdump.writeSnapshot(filename);
-    res.send('Heapdump has benn generated in '+ filename);
-});
-// app.get('/:room',(req,res)=>{
-//   console.log('room name is :'+req.params.room);
-//   res.render('chattingSample',{room : req.params.room});
+// app.use('/leak',(req,res,next)=>{
+//     for(var i = 0;i<1000;i++){
+//         memoryLeak.push(new LeakedObject());
+//     }
+//     // 여기서 process.memoryUsage().rss는 MB -> KB -> Byte임을 알수있다
+//     res.send('making memory leak. Current memory usage : ' + (process.memoryUsage().rss/1024/1024) + 'MB');
 // });
+// app.use('/heapdump',(req,res,next)=>{
+//     var filename = 'home/alcuk1/IdeaProjects/testApp/public/images/' + Date.now() + '.heapsnapshot';
+//     heapdump.writeSnapshot(filename);
+//     res.send('Heapdump has benn generated in '+ filename);
+// });
+app.get('/:room',(req,res)=>{
+  console.log('room name is :'+req.params.room);
+  res.render('chattingSample',{room : req.params.room});
+});
 
 module.exports.writecookie = function(req,res){
   var name = req.signedCookies.name;

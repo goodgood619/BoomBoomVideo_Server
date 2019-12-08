@@ -6,8 +6,13 @@
 
 var app = require('../app');
 var debug = require('debug')('testapp:server');
-var http = require('http');
-
+var http = require('http')
+var https = require('https');
+var fs = require('fs')
+// var options = {
+//     key : fs.readFileSync('./server.key'),
+//     cert : fs.readFileSync('./server.crt')
+// }
 /**
  * Get port from environment and store in Express.
  */
@@ -18,8 +23,9 @@ app.set('port', port);
 /**
  * Create HTTP server.
  */
-
-var server = http.createServer(app);
+var server = http.createServer(app)
+//var server2 = https.createServer(options,app,(res,req)=>{
+//}).listen(3001)
 var io = require('socket.io').listen(server);
 var socket_ids = [];
 var count  = 1;

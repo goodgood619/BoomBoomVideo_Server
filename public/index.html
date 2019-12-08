@@ -1,7 +1,7 @@
 <html>
 <head>
     <title></title>
-    <script src = "http://localhost:3001/socket.io/socket.io.js"></script>
+    <script src = "https://localhost:3001/socket.io/socket.io.js"></script>
     <script
             src="https://code.jquery.com/jquery-3.4.1.min.js"
             integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
@@ -19,7 +19,7 @@
     <br>
     <span id="msgs"></span>
     <script type="text/javascript">
-        var socket = io.connect('http://localhost:3001');
+        var socket = io.connect('https://localhost:3001');
         $('#changename').click(function(){
             socket.emit('changename',{nickname: $('#nickname').val()});
         });

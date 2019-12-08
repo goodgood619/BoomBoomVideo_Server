@@ -90,7 +90,7 @@
 
 <head>
         <title></title>
-                <script src = "http://localhost:3001/socket.io/socket.io.js"></script>
+                <script src = "https://localhost:3001/socket.io/socket.io.js"></script>
                 <script
                         src="https://code.jquery.com/jquery-3.4.1.min.js"
                         integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
@@ -98,7 +98,7 @@
                 </script>
 </head>
 <body>
-<b>Welcome ROOM : <%= room%></b><p>
+<b>Welcome ROOM : <%= room %></b><p>
     Name <input type="text" id="nickname" /> <input type="button" id="changename" value="Change name"/><br>
     To
     <select id="to">
@@ -110,7 +110,7 @@
 
 
     <script type="text/javascript">
-        var socket = io.connect('http://localhost:3001/');
+        var socket = io.connect('https://localhost:3001/');
         socket.emit('joinroom',{room:'<%=room%>'});
         $('#changename').click(function(){
             socket.emit('changename',{nickname:$('#nickname').val()});
