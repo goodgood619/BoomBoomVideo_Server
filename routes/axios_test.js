@@ -4,6 +4,7 @@ const axios = require('../model/axiosTestDB');
 const imageaxios = require('../model/axiosfileDB');
 const boardcontent = require('../model/boardContent');
 const boardreply = require('../model/boardReply');
+const boardrereply = require('../model/boardRereply');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -213,10 +214,21 @@ router.post('/savereply',(req,res)=>{
         res.json({test : 'ok'});
     })
 });
+router.post('/saverereply',(req,res)=>{
+    const boardrereplydb = new boardrereply({reboardnumber : req.body.boardreplynumber,rerelikenumber: 0,rereauthor: req.body.rereauthor,
+    rerecontent : req.body.rerecontent, rerepassword: req.body.rerepassword, re_reportcnt: 0});
+    boardrereplydb.save((err,data)=>{
+        if(err){
+            console.log(err)
+            throw err
+        }
+        res.json({test: 'ok'})
+    })
+})
 
 router.post('/dataupload',async (req,res)=> {
     const page = req.body.page;
-    var jsonobject = [];
+    const value1 = [],value2 = [], value3 = [],value4 = [];
     // boardcontent 내용들
     var findboardcontent = () => {
         return new Promise((fulfilled, rejected) => {
@@ -282,22 +294,42 @@ router.post('/dataupload',async (req,res)=> {
             })
         }
     };
+
+    //대댓글갯수
+    var rereplycontent = ()=> {
+        return new Promise((ok,no)=>{
+            boardrereply.find({}).exec((err,data)=>{
+                if(err){
+                    console.log(err);
+                    no(err);
+                    throw err;
+                }
+                ok(data)
+            })
+        })
+    };
+
     var a = findboardcontent().then((data)=>{
-        console.log(data);
-        jsonobject.push({test: data});
+       // console.log(data);
+        value1.push({uploaddata: data});
         return replycontent(data)
     }).then((data)=>{
-        console.log(data)
-        jsonobject.push({test: data})
+        //console.log(data)
+        value2.push({reply: data})
     }).catch((err)=>console.log(err));
 
     var b = totalboardcontent().then((data)=>{
-        jsonobject.push({test : data})
+        value3.push({totalboardcnt: data})
     });
 
-    Promise.all([a,b]).then(()=>{
+    var c = rereplycontent().then((data)=>{
+        value4.push({rereply : data})
+    });
+
+    Promise.all([a,b,c]).then(()=>{
         res.json({
-            data : jsonobject
+            uploaddata : value1, replydata : value2,
+            totalboardcontent : value3, rereplydata : value4
         })
     })
 });
@@ -396,6 +428,46 @@ router.post('/likeboardcontent',async (req,res)=>{
         })
     }
 });
+router.post('/likereplycontent', async (req,res)=>{
+    if(ipinstance.getInstance().has(JSON.stringify({IP : ip.address(),like : 'likenumber',reboardnumber : req.body.reboardnumber}))){
+        res.json({test: 'no'});
+    }
+    else {
+        ipinstance.getInstance().put(JSON.stringify({IP: ip.address(), like: 'likenumber',reboardnumber : req.body.reboardnumber}), 1);
+        // boardnumber 받아서 증가시키면됨
+        var likenumber = req.body.relikenumber;
+        likenumber++;
+        boardreply.findOneAndUpdate({reboardnumber: req.body.reboardnumber}, {relikenumber: likenumber}, {
+            new: true
+        }).exec((err, data) => {
+            if (err) {
+                console.log(err);
+                throw err
+            }
+            res.json({test: data});
+        })
+    }
+});
+router.post('/likerereplycontent',async (req,res)=>{
+    if(ipinstance.getInstance().has(JSON.stringify({IP : ip.address(),like : 'likenumber',rereboardnumber : req.body.rereboardnumber}))){
+        res.json({test: 'no'});
+    }
+    else {
+        ipinstance.getInstance().put(JSON.stringify({IP: ip.address(), like: 'likenumber',rereboardnumber : req.body.rereboardnumber}), 1);
+        // boardnumber 받아서 증가시키면됨
+        var likenumber = req.body.rerelikenumber;
+        likenumber++;
+        boardrereply.findOneAndUpdate({rereboardnumber: req.body.rereboardnumber}, {rerelikenumber: likenumber}, {
+            new: true
+        }).exec((err, data) => {
+            if (err) {
+                console.log(err);
+                throw err
+            }
+            res.json({test: data});
+        })
+    }
+});
 
 router.post('/dislikeboardcontent',async (req,res)=> {
     if(ipinstance.getInstance().has(JSON.stringify({IP : ip.address(),dislike : 'dislikenumber',boardnumber : req.body.boardnumber}))) {
@@ -424,7 +496,7 @@ router.post('/reportcntcontent',async (req,res)=> {
     }
     else {
         ipinstance.getInstance().put(JSON.stringify({IP: ip.address(), reportcnt: 'reportcnt',boardnumber : req.body.boardnumber}), 1);
-        var reportcnt = req.body.reportcnt
+        var reportcnt = req.body.reportcnt;
         reportcnt++
         boardcontent.findOneAndUpdate({boardnumber :req.body.boardnumber},{reportcnt : reportcnt},{new : true}).exec((err,data)=>{
             if(err){
