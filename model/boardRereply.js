@@ -3,6 +3,7 @@ var Schema = mongoose.Schema;
 var autoIncrement = require('mongoose-auto-increment');
 
 const boardrereplydb = new Schema({
+    boardnumber : Number,
     reboardnumber : Number,
     rerelikenumber : Number,
     rereauthor : "",
