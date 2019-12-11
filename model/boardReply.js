@@ -1,6 +1,6 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
-var autoIncrement = require('mongoose-auto-increment')
+var autoIncrement = require('mongoose-auto-increment');
 
 const boardreplydb = new Schema({
     boardnumber : Number,
@@ -11,7 +11,7 @@ const boardreplydb = new Schema({
     re_reportcnt : Number
 });
 
-autoIncrement.initialize(mongoose.connection)
+autoIncrement.initialize(mongoose.connection);
 boardreplydb.plugin(autoIncrement.plugin,{
     model : 'boardReply',
     field : 'reboardnumber',
