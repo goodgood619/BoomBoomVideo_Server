@@ -18,6 +18,32 @@ var totalboardcontent = ()=> {
         })
     })
 };
+// 전체페이지 카테고리용(첫페이지 데이터 찾기)
+var categorycontent = (category) =>{
+    return new Promise((ok,no)=>{
+        boardcontent.find({category : category}).limit(3).skip(0).exec((err,data)=>{
+            if(err){
+                console.log(err);
+                no(err);
+                throw err
+            }
+            ok(data)
+        })
+    })
+};
+// 전체페이지 카테고리용(첫페이지 데이터 찾기)
+var allcontent = () =>{
+    return new Promise((ok,no)=>{
+        boardcontent.find({}).limit(3).skip(0).exec((err,data)=>{
+            if(err){
+                console.log(err);
+                no(err);
+                throw err
+            }
+            ok(data)
+        })
+    })
+};
 var totalcategorycontent = (category) =>{
     return new Promise((fulfilled,rejected)=>{
         boardcontent.countDocuments({category : category}).exec((err,data)=>{
@@ -30,6 +56,19 @@ var totalcategorycontent = (category) =>{
         })
     })
 };
+var nextcategorycontent = (category,page) =>{
+    return new Promise((ok,no)=>{
+        boardcontent.find({category: category}).limit(3).skip(page * 3).exec((err, data) => {
+            if (err) {
+                console.log(err);
+                no(err);
+                throw err
+            }
+            ok(data)
+        })
+    })
+};
+
 // 댓글갯수
 var replycontent = (data) => {
     if(data.length == 1) {
@@ -124,45 +163,36 @@ router.post('/dataupload',async (req,res)=> {
     })
 });
 
-router.post('/allupload',async (req,res)=>{
-    const totalsize = [],allcontent = [];
-    var aa = boardcontent.find().limit(3).skip(0).exec((err,data)=>{
-        if(err){
-            console.log(err);
-            throw err
-        }
-        allcontent.push({uploaddata : data})
+router.post('/allupload',async (req,res)=> {
+    const value1 = [],value2 = [], value3 = [],value4 = [];
+    var a = allcontent().then((data)=>{
+        value1.push({uploaddata: data});
+        return replycontent(data)
+    }).then((data)=>{
+        value2.push({reply: data})
+    }).catch((err)=>console.log(err));
+
+    var b = totalboardcontent().then((data)=>{
+        value3.push({totalboardcnt: data})
     });
-    var ab = totalboardcontent().then((data)=>{
-        totalsize.push({totalboardcnt : data})
+
+    var c = rereplycontent().then((data)=>{
+        value4.push({rereply : data})
     });
-    Promise.all([aa,ab]).then(()=>{
+
+    Promise.all([a,b,c]).then(()=>{
         res.json({
-            uploaddata : allcontent,
-            totalboardcontent : totalsize
+            uploaddata : value1, replydata : value2,
+            totalboardcontent : value3, rereplydata : value4
         })
     })
 });
-router.post('/lolupload',async (req,res)=>{
-
-});
-router.post('/humordataupload',async (req,res)=>{
+router.post(['/humordataupload','/lolupload','/gameupload','/bgroundupload','/owatchupload','/impressupload','/animalupload','/sportsupload','/etcupload',
+    '/musicupload'],async (req,res)=>{
     // 최초의 0페이지로 디폴트 + 그에 관한 댓글 + 대댓글
     const n1 = [], n2 = [] ,n3 =[], n4 = [];
-    var humorcontent = () =>{
-        return new Promise((ok,no)=>{
-            boardcontent.find({category : req.body.category}).limit(3).skip(0).exec((err,data)=>{
-                if(err){
-                    console.log(err);
-                    no(err);
-                    throw err
-                }
-                ok(data)
-            })
-        })
-    };
 
-    var wa = humorcontent().then((data)=>{
+    var wa = categorycontent(req.body.category).then((data)=>{
         n1.push({uploaddata : data});
         return replycontent(data)
     }).then((data)=>{
@@ -180,7 +210,19 @@ router.post('/humordataupload',async (req,res)=>{
             totalboardcontent : n3, rereplydata : n4
         })
     });
+});
+router.post('/likeupload',async (req,res)=>{
 
+    boardcontent.aggregate([
+        {$addFields : {votes : {$subtract : ["$likenumber","$dislikenumber"]}}},
+        {$sort : {votes : -1,reg_dt :1}}
+    ]).exec((err,data)=>{
+        if(err){
+            console.log(err);
+            throw err
+        }
+        console.log(data);
+    })
 });
 router.post('/nextpagination',(req,res)=>{
     const page = req.body.page;
@@ -198,7 +240,7 @@ router.post('/nextpagination',(req,res)=>{
                     ok(data)
                 })
             })
-        }
+        };
 
         var wa = nextcontent().then((data)=>{
             n1.push({uploaddata : data});
@@ -208,7 +250,7 @@ router.post('/nextpagination',(req,res)=>{
         }).catch((err)=>console.log(err));
         var wc = rereplycontent().then((data)=>{
             n4.push({rereply : data});
-        })
+        });
         Promise.all([wa,wc]).then(()=>{
             res.json({
                 uploaddata : n1,replydata : n2,
@@ -216,12 +258,23 @@ router.post('/nextpagination',(req,res)=>{
             })
         });
     } else {
-        boardcontent.find({category: req.body.category}).limit(3).skip(page * 3).exec((err, data) => {
-            if (err) {
-                console.log(err);
-                throw err
-            }
-            res.json({test: data});
+
+        var wa = nextcategorycontent(req.body.category,page).then((data)=>{
+            n1.push({uploaddata : data});
+            return replycontent(data)
+        }).then((data)=>{
+            n2.push({reply : data});
+        }).catch((err)=>console.log(err));
+
+        var wc = rereplycontent().then((data)=>{
+            n4.push({rereply : data})
+        });
+
+        Promise.all([wa,wc]).then(()=>{
+            res.json({
+                uploaddata : n1,replydata : n2,
+                rereplydata : n4
+            })
         })
     }
 });
@@ -259,12 +312,22 @@ router.post('/pastpagination',(req,res)=>{
         });
 
     } else {
-        boardcontent.find({category: req.body.category}).limit(3).skip(page * 3).exec((err, data) => {
-            if (err) {
-                console.log(err);
-                throw err
-            }
-            res.json({test: data});
+        var wa = nextcategorycontent(req.body.category,page).then((data)=>{
+            n1.push({uploaddata : data});
+            return replycontent(data)
+        }).then((data)=>{
+            n2.push({reply : data});
+        }).catch((err)=>console.log(err));
+
+        var wc = rereplycontent().then((data)=>{
+            n4.push({rereply : data})
+        });
+
+        Promise.all([wa,wc]).then(()=>{
+            res.json({
+                uploaddata : n1,replydata : n2,
+                rereplydata : n4
+            })
         })
     }
 });
