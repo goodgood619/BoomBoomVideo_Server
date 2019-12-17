@@ -18,6 +18,18 @@ var totalboardcontent = ()=> {
         })
     })
 };
+var totalsearchcontent = (searchcategory,searchtitle) => {
+  return new Promise((ok,no)=>{
+      boardcontent.countDocuments({$and:[{linktitle :{$regex:searchtitle}},{category :{$regex:searchcategory}}]}).exec((err,data)=>{
+          if(err){
+              console.log(err)
+              no(err)
+              throw err
+          }
+          ok(data)
+      })
+  })
+};
 // 좋아요 content 갯수 계산
 var likecontent = () => {
     return new Promise((ok,no)=>{
@@ -33,6 +45,19 @@ var likecontent = () => {
             ok(data);
         });
     })
+};
+// search 적용된 것 계산
+var search = (page,searchcategory, searchtitle) =>{
+  return new Promise((ok,no)=>{
+      boardcontent.find({$and:[{linktitle :{$regex:searchtitle}},{category :{$regex:searchcategory}}]}).skip(page*3).limit(3).exec((err,data)=>{
+          if(err) {
+              console.log(err)
+              no(err)
+              throw err
+          }
+          ok(data);
+      })
+  })
 };
 // page적용된 등록순서(일찍된순서대로)
 var nextcontent = (page) => {
@@ -89,19 +114,6 @@ var categorycontent = (category) =>{
         })
     })
 };
-// 전체페이지 카테고리용(첫페이지 데이터 찾기, 등록순서가 빠른순서대로)
-var allcontent = () =>{
-    return new Promise((ok,no)=>{
-        boardcontent.find({}).skip(0).limit(3).exec((err,data)=>{
-            if(err){
-                console.log(err);
-                no(err);
-                throw err
-            }
-            ok(data)
-        })
-    })
-};
 // 전체페이지 카테고리용(첫페이지 데이터 찾기, 등록순서가 늦은순서대로)
 var currentcontent = () =>{
     return new Promise((ok,no)=>{
@@ -146,8 +158,8 @@ var replycontent = (data) => {
         return new Promise((ok, no) => {
             boardreply.find({$or: [{boardnumber: data[0].boardnumber}]}).sort({relikenumber : -1}).exec((err, data) => {
                 if (err) {
-                    console.log(err)
-                    no(err)
+                    console.log(err);
+                    no(err);
                     throw err
                 }
                 ok(data)
@@ -236,7 +248,7 @@ router.post('/dataupload',async (req,res)=> {
 
 router.post('/registerupload',async (req,res)=> {
     const value1 = [],value2 = [], value3 = [],value4 = [];
-    var a = allcontent().then((data)=>{
+    var a = nextcontent(0).then((data)=>{
         value1.push({uploaddata: data});
         return replycontent(data)
     }).then((data)=>{
@@ -306,6 +318,29 @@ router.post(['/humordataupload','/lolupload','/gameupload','/bgroundupload','/ow
         })
     });
 });
+router.post('/searchcontent',async (req,res)=>{
+    const n1 = [], n2 = [], n3 = [], n4 = [];
+
+    var la = search(0,req.body.searchcategory,req.body.searchtitle).then((data)=> {
+        n1.push({uploaddata : data});
+        return replycontent(data);
+    }).then((data)=>{
+        n2.push({reply : data});
+    }).catch((err)=>console.log(err));
+    var lb = totalsearchcontent(req.body.searchcategory,req.body.searchtitle).then((data)=>{
+        n3.push({totalboardcnt : data});
+    });
+    var lc = rereplycontent().then((data)=>{
+        n4.push({rereply : data});
+    });
+
+    Promise.all([la,lb,lc]).then(()=>{
+        res.json({
+            uploaddata : n1,replydata : n2,
+            totalboardcontent : n3, rereplydata : n4
+        })
+    })
+});
 router.post('/likeupload',async (req,res)=>{
 
     const n1 = [], n2 = [], n3 = [], n4 = [];
@@ -332,8 +367,25 @@ router.post('/likeupload',async (req,res)=>{
 router.post('/nextpagination',(req,res)=>{
     const page = req.body.page;
     //전체페이지 넘기는것!(카테고리가 없는경우, 여기서 댓)
-    const n1 = [], n2 = [], n3 = [] , n4 =[];
-    if(req.body.category === "등록순") {
+    const n1 = [], n2 = [],n4 =[];
+    // 검색용이 남아있을때
+    if(req.body.searchtitle !== "") {
+        var wa = search(page,req.body.searchcategory,req.body.searchtitle).then((data)=>{
+            n1.push({uploaddata : data});
+            return replycontent(data)
+        }).then((data)=>{
+            n2.push({reply : data});
+        }).catch((err)=>console.log(err));
+        var wc = rereplycontent().then((data)=>{
+            n4.push({rereply : data});
+        });
+        Promise.all([wa,wc]).then(()=>{
+            res.json({
+                uploaddata : n1,replydata : n2,
+                rereplydata : n4
+            })
+        });
+    } else if(req.body.category === "등록순") {
 
         var wa = nextcontent(page).then((data)=>{
             n1.push({uploaddata : data});
@@ -370,8 +422,7 @@ router.post('/nextpagination',(req,res)=>{
             })
         })
 
-    }
-    else if(req.body.category === "최신순") {
+    } else if(req.body.category === "최신순") {
 
         var wa = nextcurrentcontent(page).then((data)=>{
             n1.push({uploaddata : data});
@@ -411,8 +462,24 @@ router.post('/nextpagination',(req,res)=>{
 });
 router.post('/pastpagination',(req,res)=>{
     const page = req.body.page;
-    const n1 = [], n2 = [], n3 = [] , n4 =[];
-    if(req.body.category === "등록순") {
+    const n1 = [], n2 = [], n4 =[];
+    if(req.body.searchtitle !=="") {
+        var wa = search(page,req.body.searchcategory,req.body.searchtitle).then((data)=>{
+            n1.push({uploaddata : data});
+            return replycontent(data)
+        }).then((data)=>{
+            n2.push({reply : data});
+        }).catch((err)=>console.log(err));
+        var wc = rereplycontent().then((data)=>{
+            n4.push({rereply : data});
+        });
+        Promise.all([wa,wc]).then(()=>{
+            res.json({
+                uploaddata : n1,replydata : n2,
+                rereplydata : n4
+            })
+        });
+    } else if(req.body.category === "등록순") {
 
         var wa = nextcontent(page).then((data)=>{
             n1.push({uploaddata : data});
