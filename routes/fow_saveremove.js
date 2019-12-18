@@ -4,7 +4,7 @@ const boardcontent = require('../model/boardContent');
 const boardreply = require('../model/boardReply');
 const boardrereply = require('../model/boardRereply');
 const Promise = require('es6-promise');
-
+const puppeteer = require('puppeteer');
 router.post('/saveboard',async (req,res)=> {
     let url = req.body.linkaddress
     var async1 =  ()=>{
@@ -66,6 +66,7 @@ router.post('/saveboard',async (req,res)=> {
 });
 
 router.post('/savereply',(req,res)=>{
+    // boardnumber에 대한 댓글을 다시 가지고온다
     const boardreplydb = new boardreply({boardnumber : req.body.boardnumber, relikenumber: 0, reauthor : req.body.reauthor,
         recontent : req.body.recontent, repassword: req.body.repassword,re_reportcnt: 0});
     boardreplydb.save((err,data)=>{
@@ -73,8 +74,14 @@ router.post('/savereply',(req,res)=>{
             console.log(err);
             throw err
         }
-        res.json({test : 'ok'});
-    })
+        boardreply.find({reboardnumber : data.reboardnumber}).exec((err,data)=>{
+            if(err){
+                console.log(err);
+                throw err;
+            }
+            res.json({test: data})
+        })
+    });
 });
 router.post('/saverereply',(req,res)=>{
     const boardrereplydb = new boardrereply({boardnumber : req.body.boardnumber, reboardnumber : req.body.boardreplynumber,rerelikenumber: 0,rereauthor: req.body.rereauthor,
