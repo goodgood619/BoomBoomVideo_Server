@@ -10,8 +10,8 @@ var totalboardcontent = ()=> {
     return new Promise((fulfilled,rejected)=>{
         boardcontent.countDocuments().exec((err,data)=>{
             if(err){
-                console.log(err)
-                rejected(err)
+                console.log(err);
+                rejected(err);
                 throw err
             }
             fulfilled(data)
@@ -22,8 +22,8 @@ var totalsearchcontent = (searchcategory,searchtitle) => {
   return new Promise((ok,no)=>{
       boardcontent.countDocuments({$and:[{linktitle :{$regex:searchtitle}},{category :{$regex:searchcategory}}]}).exec((err,data)=>{
           if(err){
-              console.log(err)
-              no(err)
+              console.log(err);
+              no(err);
               throw err
           }
           ok(data)

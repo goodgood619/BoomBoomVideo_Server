@@ -2,16 +2,11 @@ const express = require('express');
 const router = express.Router();
 const axios = require('../model/axiosTestDB');
 const imageaxios = require('../model/axiosfileDB');
-const boardcontent = require('../model/boardContent');
-const boardreply = require('../model/boardReply');
-const boardrereply = require('../model/boardRereply');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const Promise = require('es6-promise');
 const puppeteer = require('puppeteer');
-const ip = require('ip');
-var ipinstance = require('./Singleton');
 
 router.get('/axios',(req,res)=> {
 
@@ -142,65 +137,6 @@ router.get('/videoupload',(req,res)=> {
         res.end('500 Internal Server '+err)
     })
 });
-
-// likeerase, dislikeerase, reporterase, replylikeerase, rereplylikeerase, replyreporterase, rereplyreporterase(IP 좋아요 싫어요등 테이블 관리)
-var likeerase = (boardnumber) =>{
-    return new Promise((ok,reject)=>{
-        if(ipinstance.getInstance().get(JSON.stringify({IP: ip.address(), like: 'likenumber',boardnumber : boardnumber}))){
-            ipinstance.getInstance().remove(JSON.stringify({IP: ip.address(), like: 'likenumber',boardnumber : boardnumber}));
-        }
-        ok('1')
-    })
-};
-var dislikeerase = (boardnumber) => {
-    return new Promise((ok,reject)=>{
-        if(ipinstance.getInstance().get(JSON.stringify({IP: ip.address(),dislike: 'dislikenumber',boardnumber : boardnumber}))){
-            ipinstance.getInstance().remove(JSON.stringify({IP: ip.address(),dislike: 'dislikenumber',boardnumber : boardnumber}));
-        }
-        ok('2')
-    })
-};
-var replylikeerase = (reboardnumber) => {
-    return new Promise((ok,no)=>{
-        if(ipinstance.getInstance().get(JSON.stringify({IP : ip.address(),like : 'likenumber',reboardnumber : reboardnumber}))) {
-            ipinstance.getInstance().remove(JSON.stringify({IP : ip.address(),like : 'likenumber',reboardnumber : reboardnumber}));
-        }
-        ok('1')
-    })
-};
-var rereplylikeerase = (rereboardnumber) => {
-    return new Promise((ok,no)=>{
-        if(ipinstance.getInstance().get(JSON.stringify({IP : ip.address(),like : 'likenumber',rereboardnumber : rereboardnumber}))){
-            ipinstance.getInstance().remove(JSON.stringify({IP : ip.address(),like : 'likenumber',rereboardnumber : rereboardnumber}));
-        }
-        ok('1')
-    })
-};
-var replyreporterase = (reboardnumber) => {
-    return new Promise((ok,no)=>{
-        if(ipinstance.getInstance().get(JSON.stringify({IP : ip.address(),re_reportcnt : 're_reportcnt',reboardnumber : reboardnumber}))) {
-            ipinstance.getInstance().remove(JSON.stringify({IP : ip.address(),re_reportcnt : 're_reportcnt',reboardnumber : reboardnumber}));
-        }
-        ok('1')
-    })
-};
-var rereplyreporterase = (rereboardnumber) => {
-    return new Promise((ok,no)=>{
-        if(ipinstance.getInstance().get(JSON.stringify({IP : ip.address(),rere_reportcnt : 'rere_reportcnt',rereboardnumber : rereboardnumber}))) {
-            ipinstance.getInstance().get(JSON.stringify({IP : ip.address(),rere_reportcnt : 'rere_reportcnt',rereboardnumber : rereboardnumber}))
-        }
-        ok('1')
-    })
-};
-
-var reporterase = (boardnumber)=>{
-    return new Promise((ok,reject)=>{
-        if(ipinstance.getInstance().get(JSON.stringify({IP: ip.address(),reportcnt: 'reportcnt',boardnumber : boardnumber}))){
-            ipinstance.getInstance().remove(JSON.stringify({IP: ip.address(), reportcnt: 'reportcnt',boardnumber : boardnumber}));
-        }
-        ok('3');
-    })
-};
 
 
 module.exports = router;
