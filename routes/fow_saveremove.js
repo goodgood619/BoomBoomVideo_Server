@@ -143,7 +143,7 @@ var singlerereplyreporterase = (rereboardnumber) => {
         ok('1');
     })
 };
-router.post('/saveboard',async (req,res)=> {
+router.post('/saveboardyoutube',async (req,res)=> {
     let url = req.body.linkaddress
     var async1 =  ()=>{
         return new Promise((fulfilled,rejected)=>{
@@ -151,10 +151,10 @@ router.post('/saveboard',async (req,res)=> {
                 const page = await browser.newPage();
                 await page.goto(url);
                 try {
-                    await page.waitForSelector('div h1');
-                    await page.waitForSelector('div ytd-video-owner-renderer div ytd-channel-name div div yt-formatted-string a');
-                    const title = await page.evaluate(()=> document.querySelector('div h1').textContent);
-                    const who = await page.evaluate(()=>document.querySelector('div ytd-channel-name div div yt-formatted-string a').textContent);
+                    await page.waitForSelector('h1');
+                    await page.waitForSelector('ytd-channel-name div div yt-formatted-string a');
+                    const title = await page.evaluate(()=> document.querySelector('h1').textContent);
+                    const who = await page.evaluate(()=>document.querySelector('ytd-channel-name div div yt-formatted-string a').textContent);
                     // console.log(title)
                     // console.log(who)
                     fulfilled({title,who})
@@ -185,17 +185,116 @@ router.post('/saveboard',async (req,res)=> {
     };
 
     async1().then(({title,who})=> {
-        async2().then((linkaddress)=>{
-            const boardcontentdb = new boardcontent({category : req.body.category,likenumber: 0, dislikenumber : 0 , linkaddress: linkaddress,
-                title : req.body.title, author : req.body.author , password : req.body.password ,reportcnt : 0,
-                iframetoggle : false,replytoggle : false,linkauthor : who, linktitle : title});
-            boardcontentdb.save((err,obj) => {
-                if(err) {
-                    console.log(err);
-                    throw err
+        async2().then((linkaddress)=> {
+            if(req.body.title !=="") {
+                const boardcontentdb = new boardcontent({
+                    category: req.body.category, likenumber: 0, dislikenumber: 0, linkaddress: url,
+                    videolinkaddress: linkaddress, title: req.body.title, author: req.body.author,
+                    password: req.body.password, reportcnt: 0, iframetoggle: false,
+                    replytoggle: false, linkauthor: who, linktitle: title
+                });
+                boardcontentdb.save((err, obj) => {
+                    if (err) {
+                        console.log(err);
+                        throw err
+                    }
+                    res.json({test: obj})
+                })
+            } else {
+                const boardcontentdb = new boardcontent({
+                    category: req.body.category, likenumber: 0, dislikenumber: 0, linkaddress: url,
+                    videolinkaddress: linkaddress, title: title, author: req.body.author,
+                    password: req.body.password, reportcnt: 0, iframetoggle: false,
+                    replytoggle: false, linkauthor: who, linktitle: title
+                });
+                boardcontentdb.save((err, obj) => {
+                    if (err) {
+                        console.log(err);
+                        throw err
+                    }
+                    res.json({test: obj})
+                })
+            }
+        })
+    }).catch((error)=>{
+        console.log(error);
+        res.json({err : error})
+    })
+});
+
+
+router.post('/saveboardtwitch',async (req,res)=>{
+    let url = req.body.linkaddress
+    var async1 =  ()=>{
+        return new Promise((fulfilled,rejected)=>{
+            puppeteer.launch({headless: true}).then(async browser => {
+                const page = await browser.newPage();
+                await page.goto(url);
+                try {
+                    await page.waitForSelector('main div div div div div div a div p');
+                    await page.waitForSelector('div div p span');
+                    const title = await page.evaluate(()=> document.querySelector('div div p span').textContent);
+                    const who = await page.evaluate(()=>document.querySelector('main div div div div div div a div p').textContent);
+                    // console.log(title);
+                    // console.log(who);
+                    fulfilled({title,who})
                 }
-                res.json({test: obj})
+                catch(err){
+                    // console.log(err)
+                    rejected(err)
+                }
             })
+        })
+    };
+
+    var async2 = () =>{
+        return new Promise((done,reject)=>{
+            if(url.match("clip")){
+                const linkaddress = url.substring(url.indexOf('clip')+5,url.size);
+                const data = 'https://clips.twitch.tv/embed?clip=' + linkaddress;
+                // console.log(data)
+                done(data)
+            }
+            else {
+                const linkaddress = url.substring(url.indexOf('video')+7,url.size)
+                const data = 'https://www.twitch.tv/videos/embed/' + linkaddress;
+                //console.log(data)
+                done(data)
+            }
+        })
+    };
+
+    async1().then(({title,who})=> {
+        async2().then((linkaddress)=> {
+            if(req.body.title !=="") {
+                const boardcontentdb = new boardcontent({
+                    category: req.body.category, likenumber: 0, dislikenumber: 0, linkaddress: url,
+                    videolinkaddress: linkaddress, title: req.body.title, author: req.body.author,
+                    password: req.body.password, reportcnt: 0, iframetoggle: false,
+                    replytoggle: false, linkauthor: who, linktitle: title
+                });
+                boardcontentdb.save((err, obj) => {
+                    if (err) {
+                        console.log(err);
+                        throw err
+                    }
+                    res.json({test: obj})
+                })
+            } else {
+                const boardcontentdb = new boardcontent({
+                    category: req.body.category, likenumber: 0, dislikenumber: 0, linkaddress: url,
+                    videolinkaddress: linkaddress, title: title, author: req.body.author,
+                    password: req.body.password, reportcnt: 0, iframetoggle: false,
+                    replytoggle: false, linkauthor: who, linktitle: title
+                });
+                boardcontentdb.save((err, obj) => {
+                    if (err) {
+                        console.log(err);
+                        throw err
+                    }
+                    res.json({test: obj})
+                })
+            }
         })
     }).catch((error)=>{
         console.log(error);
