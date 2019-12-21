@@ -152,9 +152,9 @@ router.post('/saveboardyoutube',async (req,res)=> {
                 await page.goto(url);
                 try {
                     await page.waitForSelector('h1');
-                    await page.waitForSelector('ytd-channel-name div div yt-formatted-string a');
+                    await page.waitForSelector('ytd-video-owner-renderer div ytd-channel-name div div yt-formatted-string a');
                     const title = await page.evaluate(()=> document.querySelector('h1').textContent);
-                    const who = await page.evaluate(()=>document.querySelector('ytd-channel-name div div yt-formatted-string a').textContent);
+                    const who = await page.evaluate(()=>document.querySelector('ytd-video-owner-renderer div ytd-channel-name div div yt-formatted-string a').textContent);
                     // console.log(title)
                     // console.log(who)
                     fulfilled({title,who})
