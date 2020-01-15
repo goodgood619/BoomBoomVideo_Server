@@ -36,5 +36,8 @@
     "request": "^2.88.0",
     "session-file-store": "latest",
     "socket.io": "^2.3.0"
+  },
+  "scripts": {
+    "serve": "/usr/bin/node /home/user/IdeaProjects/nodejs_practice/bin/www"
   }
 }

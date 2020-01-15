@@ -225,7 +225,7 @@ router.post('/saveboardyoutube',async (req,res)=> {
 
 router.post('/saveboardtwitch',async (req,res)=>{
     let url = req.body.linkaddress
-    var async1 =  ()=>{
+    let async1 =  ()=>{
         return new Promise((fulfilled,rejected)=>{
             puppeteer.launch({headless: true}).then(async browser => {
                 const page = await browser.newPage();
@@ -247,7 +247,7 @@ router.post('/saveboardtwitch',async (req,res)=>{
         })
     };
 
-    var async2 = () =>{
+    let async2 = () =>{
         return new Promise((done,reject)=>{
             if(url.match("clip")){
                 const linkaddress = url.substring(url.indexOf('clip')+5,url.size);
