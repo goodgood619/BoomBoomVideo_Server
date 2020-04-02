@@ -17,14 +17,14 @@ var session = require('express-session');
 var FileStore = require('session-file-store')(session);
 var mongoose = require('mongoose');
 var heapdump = require('heapdump');
-var redis = require('redis');
+// var redis = require('redis');
 var JSON = require('JSON');
 var cors = require('cors');
 var bodyParser = require('body-parser');
 var app = express();
 var memoryLeak = [];
 function LeakedObject(){}
-client = redis.createClient(6379,'127.0.0.1');
+// client = redis.createClient(6379,'127.0.0.1');
 // simple using jwt -simple()
 // var jwt = require('jwt-simple');
 // var body = {name : 'googood',id : 'notbad',company:'good'};

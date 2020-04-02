@@ -1,6 +1,6 @@
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
-var autoIncrement = require('mongoose-auto-increment');
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+const autoIncrement = require('mongoose-auto-increment');
 
 const boardrereplydb = new Schema({
     boardnumber : Number,

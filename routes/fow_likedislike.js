@@ -3,7 +3,7 @@ const router = express.Router();
 const boardcontent = require('../model/boardContent');
 const boardreply = require('../model/boardReply');
 const boardrereply = require('../model/boardRereply');
-var ipinstance = require('./Singleton');
+const ipinstance = require('./Singleton');
 const Promise = require('es6-promise');
 const ip = require('ip');
 

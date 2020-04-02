@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const boardcontent = require('../model/boardContent');
-const boardreply = require('../model/boardReply');
-const boardrereply = require('../model/boardRereply');
+
+const boardcontent = require('../model/boardContent.js');
+const boardreply = require('../model/boardReply.js');
+const boardrereply = require('../model/boardRereply.js');
 const Promise = require('es6-promise');
 
 //total boardcontent갯수
@@ -20,7 +21,7 @@ let totalboardcontent = ()=> {
 };
 let totalsearchcontent = (searchcategory,searchtitle) => {
   return new Promise((ok,no)=>{
-      boardcontent.countDocuments({$and:[{linktitle :{$regex:searchtitle}},{category :{$regex:searchcategory}}]}).exec((err,data)=>{
+      boardcontent.countDocuments({$and:[{title :{$regex:searchtitle}},{category :{$regex:searchcategory}}]}).exec((err,data)=>{
           if(err){
               console.log(err);
               no(err);
@@ -49,7 +50,7 @@ let likecontent = () => {
 // search 적용된 것 계산
 let search = (page,searchcategory, searchtitle) =>{
   return new Promise((ok,no)=>{
-      boardcontent.find({$and:[{linktitle :{$regex:searchtitle}},{category :{$regex:searchcategory}}]}).skip(page*3).limit(3).exec((err,data)=>{
+      boardcontent.find({$and:[{title : {$regex: searchtitle}},{category : {$regex : searchcategory}}]}).skip(page*3).limit(3).exec((err,data)=>{
           if(err) {
               console.log(err)
               no(err)
@@ -154,7 +155,7 @@ let nextcategorycontent = (category,page) =>{
 
 // 댓글갯수
 let replycontent = (data) => {
-    if(data.length == 1) {
+    if(data.length === 1) {
         return new Promise((ok, no) => {
             boardreply.find({$or: [{boardnumber: data[0].boardnumber}]}).sort({relikenumber : -1}).exec((err, data) => {
                 if (err) {
@@ -166,7 +167,7 @@ let replycontent = (data) => {
             })
         })
     }
-    else if(data.length == 2) {
+    else if(data.length === 2) {
         return new Promise((ok, no) => {
             boardreply.find({$or: [{boardnumber: data[0].boardnumber}, {boardnumber: data[1].boardnumber}]}).sort({relikenumber : -1}).exec((err, data) => {
                 if (err) {
@@ -178,7 +179,7 @@ let replycontent = (data) => {
             })
         })
     }
-    else if(data.length == 3) {
+    else if(data.length === 3) {
         return new Promise((ok, no) => {
             boardreply.find({$or: [{boardnumber: data[0].boardnumber}, {boardnumber: data[1].boardnumber}, {boardnumber: data[2].boardnumber}]}).sort({relikenumber : -1}).exec((err, data) => {
                 if (err) {
@@ -339,7 +340,7 @@ router.post('/searchcontent',async (req,res)=>{
             uploaddata : n1,replydata : n2,
             totalboardcontent : n3, rereplydata : n4
         })
-    })
+        })
 });
 router.post('/likeupload',async (req,res)=>{
 
