@@ -5,7 +5,7 @@
 
 ## 적용 기술
 
-**Node JS**, **mongoDB**
+**Node JS**, **mongoDB** , **Express**
 
 ### 설치 과정
 **() means if you are not install**
