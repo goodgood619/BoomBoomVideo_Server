@@ -7,6 +7,12 @@
 
 **Node JS**, **mongoDB** , **Express**
 
+### Architecture
+
+---
+
+![architecture](BoomBoomVideo_architecture.PNG)
+
 ### 설치 과정
 **() means if you are not install**
 1. git clone https://github.com/goodgood619/BoomBoomVideo_Server.git  
